@@ -1,0 +1,55 @@
+name: Build and Release CDD Core
+
+on:
+  push:
+    tags:
+      - 'v*' # Se déclenche au push d'un tag comme "v0.1.0"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build for ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact_name: cdd-core-linux
+            asset_name: cdd-core-linux
+          - os: windows-latest
+            artifact_name: cdd-core.exe
+            asset_name: cdd-core-windows.exe
+          - os: macos-latest
+            artifact_name: cdd-core
+            asset_name: cdd-core-macos
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - name: Build Binary
+        run: cargo build --release
+
+      - name: Rename Binary (Unix)
+        if: matrix.os != 'windows-latest'
+        run: mv target/release/cdd-core target/release/${{ matrix.asset_name }}
+
+      - name: Rename Binary (Windows)
+        if: matrix.os == 'windows-latest'
+        run: move target\release\cdd-core.exe target\release\${{ matrix.asset_name }}
+
+      - name: Upload Binary to Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: target/release/${{ matrix.asset_name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
