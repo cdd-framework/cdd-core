@@ -1,8 +1,9 @@
 use crate::attacks::{SecurityReport, TestResult, Status};
+use crate::error::CddError;
 use reqwest::Client;
 use std::time::Duration;
 
-pub async fn run_suite(target: &str) -> Result<SecurityReport, reqwest::Error> {
+pub async fn run_suite(target: &str) -> Result<SecurityReport, CddError> {
     let client = Client::builder()
         .timeout(Duration::from_secs(5))
         .build()?;
@@ -11,6 +12,10 @@ pub async fn run_suite(target: &str) -> Result<SecurityReport, reqwest::Error> {
         target: target.to_string(),
         tests: Vec::new(),
     };
+
+    if target.is_empty() {
+        return Err(CddError::InternalError("Target is empty".to_string()));
+    }
 
     let responses = client.get(target).send().await?;
     let headers = responses.headers();
@@ -42,6 +47,27 @@ pub async fn run_suite(target: &str) -> Result<SecurityReport, reqwest::Error> {
     }
 
     report.tests.push(hsts);
+
+    // --- TEST 3: Permissive CORS Check ---
+    let cors_attack = client.get(target)
+        .header("Origin", "https://evil.com")
+        .send()
+        .await?;
+
+    let mut cors_test = TestResult {
+        name: "Gateway: Permissive CORS Policy".to_string(),
+        status: Status::Secure,
+        description: "CORS policy rejects unknown origins.".to_string(),
+    };
+
+    if let Some(allow_origin) = cors_attack.headers().get("access-control-allow-origin") {
+        if allow_origin == "*" || allow_origin == "https://evil.com" {
+            cors_test.status = Status::Vulnerable;
+            cors_test.description = "CORS policy is permissive, allowing requests from any origin (Access-Control-Allow-Origin).".to_string();
+        }
+    }
+
+    report.tests.push(cors_test);
 
     Ok(report)
 
