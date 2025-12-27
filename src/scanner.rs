@@ -69,6 +69,23 @@ pub async fn run_suite(target: &str) -> Result<SecurityReport, CddError> {
 
     report.tests.push(cors_test);
 
+    // --- TEST 4: Sensitive File Exposure (.env) ---
+    let env_url = format!("{}/.env", target.trim_end_matches('/'));
+    let env_check = client.get(&env_url).send().await?;
+
+    let mut env_test = TestResult {
+        name: "Business: Exposed Sensitive File Exposure: (.env)".to_string(),
+        status: Status::Secure,
+        description: "No .env file detected.".to_string(),
+    };
+
+    if env_check.status().is_success() {
+        env_test.status = Status::Vulnerable;
+        env_test.description = "CRITICAL: .env file is accessible, exposing sensitive configuration.".to_string();
+    }
+
+    report.tests.push(env_test);
+
     Ok(report)
 
 }
