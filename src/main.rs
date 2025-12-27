@@ -1,15 +1,33 @@
-use std::env;
+mod scanner;
+mod attacks;
+mod error;
 
-fn main() {
-    // println!("Hello, world!");
+use std::env;
+use serde_json::json;
+
+#[tokio::main]
+async fn main() {
     let args: Vec<String> = env::args().collect();
 
-    println!("--- CDD Framework: Core Engine v0.1 ---");
-    println!("Architecture: {}", env::consts::OS);
+    if args.len() < 2 {
+        eprintln!("Usage: cdd-core <url>");
+        std::process::exit(1);
+    }
 
-    if args.len() > 1{
-        println!("Cible reçue: {}", args[1]);
-    } else {
-        println!("Aucune cible spécifiée. Essayez: ./cdd-core <url>");
+    let target = &args[1];
+
+    match scanner::run_suite(target).await {
+        Ok(report) => {
+            println!("{}", serde_json::to_string_pretty(&report).unwrap());
+        },
+        Err(e) => {
+            let error_json = json!({
+                "error": true,
+                "message": format!("{}", e),
+                "type": format!("{:?}", e)
+            });
+            println!("{}", serde_json::to_string_pretty(&error_json).unwrap());
+            std::process::exit(0);
+        }
     }
 }
