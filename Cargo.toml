@@ -1,5 +1,5 @@
 [package]
-name = "cdd-core"
+name = "cdd_core"
 version = "0.4.0"
 edition = "2024"
 
