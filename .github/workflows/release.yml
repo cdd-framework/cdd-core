@@ -39,13 +39,13 @@ jobs:
       - name: Build Binary
         run: cargo build --release
 
-      - name: Rename Binary (Unix)
-        if: matrix.os != 'windows-latest'
-        run: mv target/release/cdd-core target/release/${{ matrix.asset_name }}
+      # - name: Rename Binary (Unix)
+      #   if: matrix.os != 'windows-latest'
+      #   run: mv target/release/cdd-core target/release/${{ matrix.asset_name }}
 
-      - name: Rename Binary (Windows)
-        if: matrix.os == 'windows-latest'
-        run: move target\release\cdd-core.exe target\release\${{ matrix.asset_name }}
+      # - name: Rename Binary (Windows)
+      #   if: matrix.os == 'windows-latest'
+      #   run: move target\release\cdd-core.exe target\release\${{ matrix.asset_name }}
 
       - name: Upload Binary to Release
         uses: softprops/action-gh-release@v1
