@@ -1,6 +1,6 @@
-mod scanner;
-mod attacks;
-mod error;
+pub mod scanner;
+pub mod attacks;
+pub mod error;
 
 use serde::{Deserialize, Serialize};
 
