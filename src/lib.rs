@@ -74,3 +74,8 @@ async fn main() {
     // Entry point for standalone testing or legacy support
     println!("CDD-Core engine active. Use via ratel-cli for synchronized audits.");
 }
+
+
+pub fn get_version() -> &'static str {
+    env!("CARGO_PKG_VERSION")
+}
