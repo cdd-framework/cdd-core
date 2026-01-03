@@ -1,4 +1,4 @@
-# 🦀 CDD Core (v0.4.0)
+# 🦀 CDD Core (v0.5.2)
 > **The High-Performance Security Engine for CDD Framework.**
 
 This repository contains the core scanning engine written in **Rust**. It is designed for maximum throughput, memory safety, and precise security diagnostics.
